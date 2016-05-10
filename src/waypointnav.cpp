@@ -67,6 +67,34 @@ void wayPointNav::update_map(){
               }
 }
 
+void sbplWaypointNav::create_costmap(){
+  path.open("my_env.cfg",ios_base::app);
+      int m,n;
+      if(prop_target>0&&prop_target<14)
+      {
+        m=4800;
+        n=4800;
+
+      }
+
+    int glob_map[m][n];
+
+      int size = (scandata.angle_max - scandata.angle_min)/scandata.angle_increment;
+      for(int m=0;m<size;m++){
+         if(scandata.ranges[m]<scandata.range_max && scandata.ranges[m]>scandata.range_min)
+         glob_map[rpos_x-(int)(40*scandata.ranges[m]*cos(scandata.angle_min + m*(scandata.angle_increment)))][rpos_y-(int)(40*scandata.ranges[m]*sin(scandata.angle_min + m*(scandata.angle_increment)))]=1;
+         //cout<<"Angle min: "<<scandata.angle_min<<std::endl<<"angle_increment: "<<scandata.angle_increment<<std::endl<<"ranges: "<<scandata.ranges[m]<<std::endl;
+          }
+        int i,j;
+      for(i=0;i<m;i++){
+         for(j=0;j<n;j++){
+            path<<glob_map[i][j]<<" ";
+         }
+         path<<std::endl;
+      }
+      path.close();
+}
+
 sbplWaypointNav::sbplWaypointNav(ros::NodeHandle &node_handle){
     ros::NodeHandle node_handle;
     odom_sub = node_handle.subscribe("/odometry/filtered", buffer_size, &sbplWaypointNav::botpos_sub, this);

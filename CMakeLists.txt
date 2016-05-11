@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   tf
+  laser_geometry
 )
 
 ## System dependencies are found with CMake's conventions
@@ -192,6 +193,7 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+
 find_package(OpenCV REQUIRED)
 add_definitions(${PCL_DEFINITIONS})
 find_package(PCL 1.3 REQUIRED COMPONENTS common io)
@@ -199,6 +201,6 @@ find_package(PCL 1.3 REQUIRED COMPONENTS common io)
 include_directories( include ${OpenCV_INCLUDE_DIRS} ${gps_common_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 
 link_directories(include ${OpenCV_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${PCL_LIBRARY_DIRS})
-add_executable(sbpl_waypt src/main.cpp src/sbpl_waypoint.cpp)
-target_link_libraries(sbpl_waypoint ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_COMMON_LIBRARIES} 
+add_executable(sbpl_waypt src/main.cpp src/waypointnav.cpp)
+target_link_libraries(sbpl_waypt ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${PCL_COMMON_LIBRARIES} 
     ${PCL_IO_LIBRARIES})

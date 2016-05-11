@@ -35,6 +35,8 @@
 
 
 static const int buffer_size = 10;
+#define rpos_x 2239
+#define rpos_y 2239
 
 class spblWaypointNav{
 
@@ -50,7 +52,7 @@ class spblWaypointNav{
     ros::Subscriber target_sub;
     ros::Subscriber scan_sub
 public:
-    int glob_map[max][max];
+  
 	void botpos_sub(const nav_msgs::Odometry botpos);
 	void proptarget_sub(const geometry_msgs::PoseStamped msgtarget);
     void laserscan_sub(const sensor_msgs::LaserScan msg);

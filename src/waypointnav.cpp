@@ -48,14 +48,14 @@ void sbplWaypointNav::printdata(){
   //cout<<"transform: "<<target_base_link.pose.position.x<<" "<<target_base_link.pose.position.y<<" "<<base_link_yaw<<endl;
   //cout<<"target pos:"<<target_pos.pose.position.x<<" "<<target_pos.pose.position.y<<" "<<endl;
 
-  path<<s[0]<<std::endl<<s[1]<<std::endl<<s[2]<<std::endl<<s[3]<<std::endl<<s[4]<<std::endl<<s[5]<<std::endl<<s[6]<<std::endl<<s[7]<<28-bot_pos.pose.pose.position.y<<" "<<28+bot_pos.pose.pose.position.x<<" "<<bot_yaw<<std::endl<<s[8]<<28-target_pos.pose.position.y<<" "<<28+target_pos.pose.position.x<<" "<<target_yaw<<std::endl<<s[9]<<std::endl;
+  path<<s[0]<<std::endl<<s[1]<<std::endl<<s[2]<<std::endl<<s[3]<<std::endl<<s[4]<<std::endl<<s[5]<<std::endl<<s[6]<<std::endl<<s[7]<<28-bot_pos.pose.pose.position.y<<" "<<14+bot_pos.pose.pose.position.x<<" "<<bot_yaw<<std::endl<<s[8]<<28-target_pos.pose.position.y<<" "<<14+target_pos.pose.position.x<<" "<<target_yaw<<std::endl<<s[9]<<std::endl;
   path.close();
 }
 
 void sbplWaypointNav::update_map(){
 
         cout<<"BOT_POS_X: "<<(int)((bot_pos.pose.pose.position.x/56.00)*mapsize)<<"  BOT_POS_Y: "<<(int)((bot_pos.pose.pose.position.y/56.00)*mapsize)<<"\n";                  
-               int bot_pix_x=((mapsize/2)-1)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
+               int bot_pix_x=((0.75*mapsize)-1)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
                int bot_pix_y=((mapsize/2)-1)-( (bot_pos.pose.pose.position.y/56.00)*mapsize);
                cout<<"bot_pix_x: "<<bot_pix_x<<" bot_pix_y: "<<bot_pix_y<<endl;
       //path.open("my_env.cfg",ios_base::app);  
@@ -116,8 +116,8 @@ void sbplWaypointNav::update_map(){
                  //cout<<pt_transformed.pose.position.x<<" "<<pt_transformed.pose.position.y<<endl;
                  //update in glob map
                    
-                  int glob_x=(bot_pix_x)-( (pt_transformed.pose.position.x/56.00)*mapsize);
-                  int glob_y=(bot_pix_y)-( (pt_transformed.pose.position.y/56.00)*mapsize);
+                  int glob_x=(0.75*mapsize)-( (pt_transformed.pose.position.x/56.00)*mapsize);
+                  int glob_y=(0.5*mapsize)-( (pt_transformed.pose.position.y/56.00)*mapsize);
                  //cout<<glob_y<<"  "<<glob_x<<endl;
                   if(glob_x>0&&glob_x<2240&&glob_y>0&&glob_y<2240)
                     glob_map[ glob_x][glob_y]=1;
@@ -140,8 +140,8 @@ void sbplWaypointNav::update_map(){
               }
               //target position in pixels
                cout<<"TARGET_POS_X: "<<(target_pos.pose.position.x/56.00)*mapsize<<"  TARGET_POS_Y: "<<(target_pos.pose.position.y/56.00)*mapsize<<endl;
-               int target_pix_x=((mapsize/2)-1)-( (target_pos.pose.position.x/56.00)*mapsize)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
-               int target_pix_y=((mapsize/2)-1)-( (target_pos.pose.position.y/56.00)*mapsize)-( (bot_pos.pose.pose.position.y/56.00)*mapsize);
+               int target_pix_x=((0.75*mapsize)-1)-( (target_pos.pose.position.x/56.00)*mapsize);
+               int target_pix_y=((mapsize/2)-1)-( (target_pos.pose.position.y/56.00)*mapsize);
                cout<<"target_pix_x: "<<target_pix_x<<" target_pix_y: "<<target_pix_y<<endl;//target_pix_x gives rows and target_pix_y gives columns
                
 

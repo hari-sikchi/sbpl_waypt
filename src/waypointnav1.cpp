@@ -54,10 +54,6 @@ void sbplWaypointNav::printdata(){
 
 void sbplWaypointNav::update_map(){
 
-        cout<<"BOT_POS_X: "<<(int)((bot_pos.pose.pose.position.x/56.00)*mapsize)<<"  BOT_POS_Y: "<<(int)((bot_pos.pose.pose.position.y/56.00)*mapsize)<<"\n";                  
-               int bot_pix_x=((mapsize/2)-1)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
-               int bot_pix_y=((mapsize/2)-1)-( (bot_pos.pose.pose.position.y/56.00)*mapsize);
-               cout<<"bot_pix_x: "<<bot_pix_x<<" bot_pix_y: "<<bot_pix_y<<endl;
       //path.open("my_env.cfg",ios_base::app);  
       /*convert laserscan data to point cloud.ref:http://wiki.ros.org/laser_geometry*/
         Mat img(mapsize,mapsize,CV_8UC3,Scalar(0,0,0));
@@ -70,9 +66,7 @@ void sbplWaypointNav::update_map(){
         /*if(!listener_.waitForTransform(scandata.header.frame_id,"/base_link",scandata.header.stamp + 
           ros::Duration().fromSec(scandata.ranges.size()*scandata.time_increment),ros::Duration(1.0)))
           {return;}*/
-              sensor_msgs::PointCloud cloud;//the points in cloud are (metre,metre) relative to center
-
-
+              sensor_msgs::PointCloud cloud;
               projector_.projectLaser(scandata, cloud);
              //projector_.transformLaserScanToPointCloud("/base_link",scandata,cloud,listener_);
                 
@@ -84,8 +78,6 @@ void sbplWaypointNav::update_map(){
                  geometry_msgs::PoseStamped pt;
                  geometry_msgs::PoseStamped pt_transformed;
                  pt.header = cloud.header;
-
-                 //shifting coordinate to (i,j)->(42,28)
                  pt.pose.position.x = cloud.points[i].x;
                  pt.pose.position.y = cloud.points[i].y;
 //                 ROS_ERROR("----");
@@ -115,12 +107,11 @@ void sbplWaypointNav::update_map(){
                     //print it*/
                  //cout<<pt_transformed.pose.position.x<<" "<<pt_transformed.pose.position.y<<endl;
                  //update in glob map
-                   
-                  int glob_x=(bot_pix_x)-( (pt_transformed.pose.position.x/56.00)*mapsize);
-                  int glob_y=(bot_pix_y)-( (pt_transformed.pose.position.y/56.00)*mapsize);
+                
+                  int glob_x=((mapsize/2)-1)-( (pt_transformed.pose.position.x/56.00)*mapsize);
+                  int glob_y=((mapsize/2)-1)-( (pt_transformed.pose.position.y/56.00)*mapsize);
                  //cout<<glob_y<<"  "<<glob_x<<endl;
-                  if(glob_x>0&&glob_x<2240&&glob_y>0&&glob_y<2240)
-                    glob_map[ glob_x][glob_y]=1;
+                 glob_map[ glob_x][glob_y]=1;
                  //write to config file
                  ///doubt for infff 
 
@@ -143,7 +134,10 @@ void sbplWaypointNav::update_map(){
                int target_pix_x=((mapsize/2)-1)-( (target_pos.pose.position.x/56.00)*mapsize)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
                int target_pix_y=((mapsize/2)-1)-( (target_pos.pose.position.y/56.00)*mapsize)-( (bot_pos.pose.pose.position.y/56.00)*mapsize);
                cout<<"target_pix_x: "<<target_pix_x<<" target_pix_y: "<<target_pix_y<<endl;//target_pix_x gives rows and target_pix_y gives columns
-               
+               cout<<"BOT_POS_X: "<<(int)((bot_pos.pose.pose.position.x/56.00)*mapsize)<<"  BOT_POS_Y: "<<(int)((bot_pos.pose.pose.position.y/56.00)*mapsize)<<"\n";                  
+               int bot_pix_x=((mapsize/2)-1)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
+               int bot_pix_y=((mapsize/2)-1)-( (bot_pos.pose.pose.position.y/56.00)*mapsize);
+               cout<<"bot_pix_x: "<<bot_pix_x<<" bot_pix_y: "<<bot_pix_y<<endl;
 
 
 

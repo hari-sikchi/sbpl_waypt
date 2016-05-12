@@ -7,6 +7,7 @@
 #include <geometry_msgs/Pose.h>
 #include <math.h>
 #include <iostream>
+#include <vector>
 #include <iomanip>
 #include <sstream>
 #include <stdlib.h>

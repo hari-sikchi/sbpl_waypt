@@ -177,7 +177,7 @@ void sbplWaypointNav::create_costmap(){
       int i,j;
       for(i=0;i<mapsize;i++){
          for(j=0;j<mapsize;j++){
-            path<<glob_map[i][j]<<" ";
+            path<<glob_map[2239-i][j]<<" ";
          }
          path<<std::endl;
       }

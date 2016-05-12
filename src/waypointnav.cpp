@@ -1,7 +1,7 @@
 #include <waypointnav.hpp>
 
 using namespace std;
-
+using namespace cv;
 //max define
 ofstream path;
 //ifstream readpath;
@@ -17,15 +17,13 @@ ofstream path;
     bot_yaw=yaw;
 }
 
-
 void sbplWaypointNav::proptarget_sub(const geometry_msgs::PoseStamped msgtarget){
   target_pos = msgtarget;
-  
-  tf::Quaternion q(msgtarget.pose.orientation.x, msgtarget.pose.orientation.y, msgtarget.pose.orientation.z, msgtarget.pose.orientation.w);
+  /*tf::Quaternion q(msgtarget.pose.orientation.x, msgtarget.pose.orientation.y, msgtarget.pose.orientation.z, msgtarget.pose.orientation.w);
   tf::Matrix3x3 m(q);
   double roll, pitch, yaw,target_yaw;
   m.getRPY(roll, pitch, yaw);
-  target_yaw=yaw;
+  target_yaw=yaw;*/
 }
 
 void sbplWaypointNav::laserscan_sub(const sensor_msgs::LaserScan msg){
@@ -48,7 +46,7 @@ void sbplWaypointNav::printdata(){
   s[9]="environment:";
   //cout<<"bot pose:"<<bot_pos.pose.pose.position.x <<" "<<bot_pos.pose.pose.position.y<<" "<<bot_yaw<<endl;
   //cout<<"transform: "<<target_base_link.pose.position.x<<" "<<target_base_link.pose.position.y<<" "<<base_link_yaw<<endl;
-  //  cout<<"target pos:"<<target_base_link.pose.position.x+bot_pos.pose.pose.position.x<<" "<<target_base_link.pose.position.y+bot_pos.pose.pose.position.y<<" "<<base_link_yaw<<endl;
+  //cout<<"target pos:"<<target_pos.pose.position.x<<" "<<target_pos.pose.position.y<<" "<<endl;
 
   path<<s[0]<<std::endl<<s[1]<<std::endl<<s[2]<<std::endl<<s[3]<<std::endl<<s[4]<<std::endl<<s[5]<<std::endl<<s[6]<<std::endl<<s[7]<<"56 28 0"<<std::endl<<s[8]<<-target_pos.pose.position.y+28<<" "<<target_pos.pose.position.x+28<<" "<<target_yaw<<std::endl<<s[9]<<std::endl;
   path.close();
@@ -58,15 +56,21 @@ void sbplWaypointNav::update_map(){
 
       //path.open("my_env.cfg",ios_base::app);
       /*convert laserscan data to point cloud.ref:http://wiki.ros.org/laser_geometry*/
+        Mat img(mapsize,mapsize,CV_8UC3,Scalar(0,0,0));
+        img=img-img;
         int i=0;
         laser_geometry::LaserProjection projector_;
-        tf::TransformListener listener_;
+         tf::StampedTransform transform;
+
+        //tf::TransformListener listener_;
         /*if(!listener_.waitForTransform(scandata.header.frame_id,"/base_link",scandata.header.stamp + 
           ros::Duration().fromSec(scandata.ranges.size()*scandata.time_increment),ros::Duration(1.0)))
           {return;}*/
               sensor_msgs::PointCloud cloud;
               projector_.projectLaser(scandata, cloud);
-              //projector_.transformLaserScanToPointCloud("/base_link",scandata,cloud,listener_);
+             //projector_.transformLaserScanToPointCloud("/base_link",scandata,cloud,listener_);
+                
+
 
               /*transform the point cloud into odom frame*/
               long long int Numcldpts=cloud.points.size();
@@ -76,23 +80,75 @@ void sbplWaypointNav::update_map(){
                  pt.header = cloud.header;
                  pt.pose.position.x = cloud.points[i].x;
                  pt.pose.position.y = cloud.points[i].y;
-              
-                 try{
+//                 ROS_ERROR("----");
+
+
+                 //cout<<pt.pose.position.x<<"___"<<pt.pose.position.y<<endl;
+
+
+                 try {
+                listener.waitForTransform("/odom", "/base_link", ros::Time(0), ros::Duration(10.0) );
+                listener.lookupTransform("/odom", "/base_link", ros::Time(0), transform);
+                  } catch (tf::TransformException ex) {
+                  ROS_ERROR("%s",ex.what());
+                  }
+                  tf::Vector3 vector_base_link = tf::Vector3(pt.pose.position.x, pt.pose.position.y, 0);
+                  tf::Vector3 vector_odom = transform(vector_base_link);
+                  pt_transformed.pose.position.x = vector_odom.getX();
+                  pt_transformed.pose.position.y = vector_odom.getY();
+                            
+                 /*try{
                     listener.waitForTransform("/odom", "/base_link", ros::Time(0), ros::Duration(10.0) );
                     listener.transformPose("/odom", pt, pt_transformed);
                   } catch (tf::TransformException ex) {
                       ROS_ERROR("%s",ex.what());
                     }
                  //listener.transformPoint("/odom", pt, pt_transformed);
-                    //print it
-                 cout<<pt_transformed.pose.position.x<<" "<<pt_transformed.pose.position.y<<endl;
+                    //print it*/
+                 //cout<<pt_transformed.pose.position.x<<" "<<pt_transformed.pose.position.y<<endl;
                  //update in glob map
-                  int glob_x=pt_transformed.pose.position.x;
-                  int glob_y=pt_transformed.pose.position.y;
+                
+                  int glob_x=((mapsize/2)-1)-( (pt_transformed.pose.position.x/56.00)*mapsize);
+                  int glob_y=((mapsize/2)-1)-( (pt_transformed.pose.position.y/56.00)*mapsize);
+                 //cout<<glob_y<<"  "<<glob_x<<endl;
                  glob_map[glob_x][glob_y]=1;
                  //write to config file
                  ///doubt for infff
+
               }
+
+              for(int i=0;i<mapsize;i++)
+              {
+                for(int j=0;j<mapsize;j++)
+                {
+                  if(glob_map[i][j]==1)
+                  {
+                  img.at<Vec3b>(i,j)[0]=0;
+                  img.at<Vec3b>(i,j)[1]=0;
+                  img.at<Vec3b>(i,j)[2]=255;
+                  }
+                }
+              }
+              //target position in pixels
+               cout<<"TARGET_POS_X: "<<(target_pos.pose.position.x/56.00)*mapsize<<"  TARGET_POS_Y: "<<(target_pos.pose.position.y/56.00)*mapsize<<endl;
+               int target_pix_x=((mapsize/2)-1)-( (target_pos.pose.position.x/56.00)*mapsize)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
+               int target_pix_y=((mapsize/2)-1)-( (target_pos.pose.position.y/56.00)*mapsize)-( (bot_pos.pose.pose.position.y/56.00)*mapsize);
+               cout<<"target_pix_x: "<<target_pix_x<<" target_pix_y: "<<target_pix_y<<endl;//target_pix_x gives rows and target_pix_y gives columns
+               cout<<"BOT_POS_X: "<<(int)((bot_pos.pose.pose.position.x/56.00)*mapsize)<<"  BOT_POS_Y: "<<(int)((bot_pos.pose.pose.position.y/56.00)*mapsize)<<"\n";                  
+               int bot_pix_x=((mapsize/2)-1)-( (bot_pos.pose.pose.position.x/56.00)*mapsize);
+               int bot_pix_y=((mapsize/2)-1)-( (bot_pos.pose.pose.position.y/56.00)*mapsize);
+               cout<<"bot_pix_x: "<<bot_pix_x<<" bot_pix_y: "<<bot_pix_y<<endl;
+
+
+
+               cv::circle(img, cv::Point(target_pix_y,target_pix_x), 50, CV_RGB(255,0,0));//convention is just opposite as in i->j and j->i
+                cv::circle(img, cv::Point(bot_pix_y, bot_pix_x), 50, CV_RGB(0,255,0));
+
+              Size size(560,560);
+              resize(img,img,size);
+              imshow("odom_map visual",img);
+              waitKey(5);
+
 }
 
 /*void sbplWaypointNav::map_zero(){
@@ -120,6 +176,9 @@ void sbplWaypointNav::create_costmap(){
          path<<std::endl;
       }
       path.close();
+
+
+
 }
 
 sbplWaypointNav::sbplWaypointNav(ros::NodeHandle &node_handle){

@@ -10,8 +10,10 @@ int main(int argc, char* argv[]) {
     while (ros::ok()){
     	
     	ros::spinOnce();
+    	
     	sbpl_waypoint->printdata();
     	sbpl_waypoint->update_map();
+    	sbpl_waypoint->create_costmap();
     	loop_rate.sleep();
     }
     //ros::spin();
